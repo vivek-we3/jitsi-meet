@@ -1,4 +1,5 @@
 /* global __dirname */
+var webpack = require("webpack");
 
 const CircularDependencyPlugin = require('circular-dependency-plugin');
 const process = require('process');
@@ -45,7 +46,7 @@ const config = {
                     'Host': new URL(devServerProxyTarget).host
                 }
             }
-        }
+        },
     },
     devtool: 'source-map',
     mode: minimize ? 'production' : 'development',
@@ -101,8 +102,14 @@ const config = {
             // to be available in such a form by multiple jitsi-meet
             // dependencies including lib-jitsi-meet.
 
-            loader: 'expose-loader?$!expose-loader?jQuery',
-            test: /\/node_modules\/jquery\/.*\.js$/
+            test: require.resolve('jquery'),
+                use: [ {
+                    loader: 'expose-loader',
+                    options: 'jQuery'
+                }, {
+                    loader: 'expose-loader',
+                    options: '$'
+                } ]
         }, {
             // Allow CSS to be imported into JavaScript.
 
@@ -153,6 +160,10 @@ const config = {
         sourceMapFilename: `[name].${minimize ? 'min' : 'js'}.map`
     },
     plugins: [
+        new webpack.ProvidePlugin({
+                $: "jquery",  
+                jQuery: "jquery"
+            }),
         analyzeBundle
             && new BundleAnalyzerPlugin({
                 analyzerMode: 'disabled',
@@ -166,9 +177,9 @@ const config = {
             })
     ].filter(Boolean),
     resolve: {
-        alias: {
-            jquery: `jquery/dist/jquery${minimize ? '.min' : ''}.js`
-        },
+        // alias: {
+        //    jquery: `jquery/dist/jquery${minimize ? '.min' : ''}.js`
+        // },
         aliasFields: [
             'browser'
         ],
